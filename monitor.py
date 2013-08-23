@@ -11,6 +11,10 @@ import gc;
 import time;
 
 import pythoncom
+import win32con
+import win32api
+
+main_thread_id = win32api.GetCurrentThreadId()
 
 hook_manager = pyHook.HookManager();
 
@@ -53,6 +57,7 @@ def monitor():
 	global posX;
 	global posY;
 	global command;
+	global main_thread_id;
 
 	while(True):
 		if((cPosX != posX) or (cPosY != posY)):
@@ -61,6 +66,7 @@ def monitor():
 			try:
 				fxm.stdin.write("move " + str(cPosX)+" "+str(cPosY)+"\n");
 			except:
+				win32api.PostThreadMessage(main_thread_id, win32con.WM_QUIT, 0, 0);
 				exit();
 		if(command != 0):
 			try:
@@ -69,10 +75,13 @@ def monitor():
 				elif(command == 2):
 					fxm.stdin.write("hide "+cmd_map[command]+"\n");
 			except:
+				win32api.PostThreadMessage(main_thread_id, win32con.WM_QUIT, 0, 0);
 				exit();
 			command = 0;
 		if(fxm.stdin.closed):
+			win32api.PostThreadMessage(main_thread_id, win32con.WM_QUIT, 0, 0);
 			exit();
+	win32api.PostThreadMessage(main_thread_id, win32con.WM_QUIT, 0, 0);
 	exit();
 
 Thread(target=monitor).start();

@@ -109,8 +109,8 @@ public class FX_Mouse extends Application implements ActionListener
 
 		javafx.scene.image.Image img2 = new javafx.scene.image.Image("./images/cursor.png");
 
-		int w = img2.getWidth();
-		int h = img2.getHeight();
+		int w = (int)img2.getWidth();
+		int h = (int)img2.getHeight();
 
 
 		Group rootGroup = new Group();

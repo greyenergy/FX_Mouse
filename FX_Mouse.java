@@ -72,8 +72,11 @@ public class FX_Mouse extends Application implements ActionListener
 	public int posY = 0;
 	public int command = 0; // 1 - give focus, 2 - hide
 	public Stdin_Watcher watcher = null;
+	public Output_Manager stdout_mgr = null;
 	public Stage _stage;
 	public BufferedImage cursor = null;
+	public boolean move_ready = true;
+	public int move_id = 0;
 
 	public void actionPerformed(java.awt.event.ActionEvent e)
 	{
@@ -84,6 +87,7 @@ public class FX_Mouse extends Application implements ActionListener
 			cPosY = posY;
 			_stage.setX(cPosX);
 			_stage.setY(cPosY);
+			move_ready = true;
 		}
 
 		// Focus/Hide commands
@@ -218,6 +222,9 @@ public class FX_Mouse extends Application implements ActionListener
 		watcher = new Stdin_Watcher(this);
 		watcher.start();
 
+		stdout_mgr = new Output_Manager(this);
+		stdout_mgr.start();
+
 		stage.setOnCloseRequest(new javafx.event.EventHandler<javafx.stage.WindowEvent>()
 		{
 			@Override
@@ -261,6 +268,7 @@ class Stdin_Watcher extends Thread
 					{
 						parent.posX = Integer.parseInt(s[1]);
 						parent.posY = Integer.parseInt(s[2]);
+						parent.move_id = Integer.parseInt(s[3]);
 					}
 					else if(s[0].equals("focus"))
 					{
@@ -281,6 +289,38 @@ class Stdin_Watcher extends Thread
 		catch(Exception ex2)
 		{
 			
+		}
+	}
+}
+class Output_Manager extends Thread
+{
+	FX_Mouse parent = null;
+	public Output_Manager(FX_Mouse parent)
+	{
+		this.parent = parent;
+	}
+
+	public void run()
+	{
+		
+		while(true)
+		{
+			try
+			{
+				if(parent.move_ready)
+				{
+					PrintWriter writer = new PrintWriter(new FileOutputStream(new File("./io/pipe")));
+					writer.write("moved "+parent.move_id+"\n");
+					writer.flush();
+					writer.close();
+					parent.move_ready = false;
+				}
+			}
+			catch(Exception ex)
+			{
+			
+			}
+			try{Thread.sleep(20);}catch(Exception ex){} // 20 milliseconds
 		}
 	}
 }
